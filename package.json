@@ -1,7 +1,7 @@
 {
-  "name": "dns_dev",
+  "name": "dns-dev",
   "version": "1.0.0",
-  "description": "Simple dev dns server, work with traefik",
+  "description": "Simple dev DNS server, work with docker and traefik",
   "main": "server.js",
   "scripts": {
     "dev": "nodemon ./server.js",
@@ -11,8 +11,8 @@
     "name": "Georgy Malkov",
     "url": "https://github.com/goshander"
   },
-  "homepage": "https://github.com/64mb/dns_dev",
-  "repository": "https://github.com/64mb/dns_dev",
+  "homepage": "https://github.com/goshander/dev_dns",
+  "repository": "https://github.com/goshander/dev_dns",
   "_moduleAliases": {
     "~": "."
   },

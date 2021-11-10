@@ -8,18 +8,15 @@ This service allow you to forgot about edit `hosts` file with big amount of hard
 
 All new domain from `traefik` labels automatically will be added to this dns table in runtime, also in runtime service watch `config.json` file from home user directory `${HOME}/.dev-dns`
 
----
+### Run
 
-DNS сервер для локальной разработки с использование `docker` и `traefik` в качестве веб-сервера
+- `dev-dns` - start server
+- `dev-dns --help` - show help doc
+- `dev-dns --install` - auto install script
+- `dev-dns --install --force` - auto install script with force current process close for update
+- `dev-dns --uninstall` - auto uninstall script
 
-Сервис решает проблему частого редактирования файла `hosts` для добавления новых локальных маршрутов до контейнеров
-
-Все новые домены тегов `traefik` для контейнеров автоматически добавляются в DNS таблицу сервера, также в автоматическом режиме отслеживаются изменения файла `config.js` из локальной директории пользователя `${HOME}/.dev-dns`. DNS сервер обновляется "налету"
-
----
----
-
-OS specific help
+### OS specific help
 
 **Linux**
 
@@ -35,7 +32,21 @@ None
 
 ---
 
-Особенности работы на разных ОС
+DNS сервер для локальной разработки с использование `docker` и `traefik` в качестве веб-сервера
+
+Сервис решает проблему частого редактирования файла `hosts` для добавления новых локальных маршрутов до контейнеров
+
+Все новые домены тегов `traefik` для контейнеров автоматически добавляются в DNS таблицу сервера, также в автоматическом режиме отслеживаются изменения файла `config.js` из локальной директории пользователя `${HOME}/.dev-dns`. DNS сервер обновляется "налету"
+
+### Запуск
+
+- `dev-dns` - запуск сервера
+- `dev-dns --help` - отобразить список доступных команд
+- `dev-dns --install` - автоматическая установка в систему
+- `dev-dns --install --force` - автоматическая установка в систему с принудительной перезагрузкой текущего сервера для обновления
+- `dev-dns --uninstall` - автоматическое удаление сервера из системы
+
+### Особенности работы на разных ОС
 
 **Linux**
 

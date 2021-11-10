@@ -1,0 +1,16 @@
+{
+  "host": "127.0.0.153",
+  "port": 53,
+  "dns": {
+    "primary": "1.1.1.1"
+  },
+  "docker": {
+    "enable": true,
+    "refresh": 10000
+  },
+  "watch": {
+    "enable": true,
+    "interval": 2000
+  },
+  "local": {}
+}

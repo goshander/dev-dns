@@ -2,7 +2,6 @@ const fs = require('fs')
 const path = require('path')
 const dns2 = require('dns2')
 const chokidar = require('chokidar')
-const ConsoleWindow = require('node-hide-console-window')
 
 const traefik = require('./traefik')
 const local = require('./local')
@@ -109,10 +108,6 @@ function configLoad() {
 }
 
 async function main() {
-  if (process.platform === 'win32') {
-    ConsoleWindow.hideConsole()
-  }
-
   let configSeed = configLoad()
   let watcher = null
   let server = null

@@ -55,7 +55,9 @@ function run({ cwd, autoStartFile }) {
   console.log('🚀 launch process:', autoStartFile)
 
   if (process.platform === 'win32') {
-    execSync(`START /B ${autoStartFile}`, { cwd, stdio: 'ignore', detached: true })
+    execSync(`Start-Process -WindowStyle hidden -FilePath ${autoStartFile} -WorkingDirectory ${cwd}`, {
+      cwd, stdio: 'ignore', shell: 'powershell.exe',
+    })
   } else if (process.platform === 'linux') {
     execSync(`${autoStartFile} &`, { cwd, stdio: 'ignore', detached: true })
   }
@@ -125,6 +127,7 @@ async function install(isForce = false) {
   const autoLaunch = new AutoLaunch({
     name: appName,
     path: targetExec,
+    isHidden: true,
   })
 
   const enabled = await autoLaunch.isEnabled()

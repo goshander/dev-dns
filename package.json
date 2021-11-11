@@ -22,8 +22,7 @@
     "dns2": "^2.0.1",
     "dockerode": "^3.3.1",
     "easy-auto-launch": "^6.0.0",
-    "is-ip": "^3.1.0",
-    "node-hide-console-window": "^2.1.0"
+    "is-ip": "^3.1.0"
   },
   "devDependencies": {
     "eslint": "^7.32.0",

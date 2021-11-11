@@ -30,6 +30,7 @@ async function dns(dnsLocal) {
   }
 
   if (process.platform === 'win32') {
+    // TODO set dns
     // win32 https://www.lifewire.com/how-to-change-dns-servers-in-windows-2626242
     // ipconfig /all
   } else if (process.platform === 'linux') {
@@ -54,7 +55,7 @@ function run({ cwd, autoStartFile }) {
   console.log('🚀 launch process:', autoStartFile)
 
   if (process.platform === 'win32') {
-    // TODO win32 launch process
+    execSync(`START /B ${autoStartFile}`, { cwd, stdio: 'ignore' })
   } else if (process.platform === 'linux') {
     execSync(`${autoStartFile} &`, { cwd, stdio: 'ignore' })
   }

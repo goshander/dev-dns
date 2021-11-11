@@ -19,6 +19,7 @@ async function pkill({ exe }) {
 
   // ignore current run process
   const pid = pList.find((p) => p.name === exe && p.pid !== process.pid)
+  if (pid == null) return
 
   let kCommand = ''
 

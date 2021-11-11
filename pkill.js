@@ -14,7 +14,7 @@ async function pkill({ exe }) {
     .trim().split('\n')
     .map((p) => {
       const pS = p.split(',')
-      return { name: pS[0].replace(/((^")|("$))/g, ''), pid: parseInt(pS[1].replace(/((^")|("$))/g, '')) }
+      return { name: pS[0].replace(/((^")|("$))/g, '').trim(), pid: parseInt(pS[1].replace(/((^")|("$))/g, '').trim()) }
     })
 
   // ignore current run process

@@ -12,9 +12,22 @@ async function dns(dnsLocal) {
   let connection = null
 
   if (process.platform === 'win32') {
-    // TODO select win32 connection
-    // win32 https://www.lifewire.com/how-to-change-dns-servers-in-windows-2626242
-    // ipconfig /all
+    const conSeed = execSync('netsh interface ip show interfaces').toString()
+
+    console.log('\n📡 select connection for auto setup dns:')
+    try {
+      const select = await cliSelect({
+        values: conSeed
+          .replace(/[\s\S]*---/, '')
+          .trim().split('\n')
+          .map((con) => con.replace(/^.* +? /, '').trim()),
+      })
+      connection = select.value
+
+      console.log('📡 connection:', connection)
+    } catch (err) {
+      process.exit(1)
+    }
   } else if (process.platform === 'linux') {
     const conSeed = execSync('ls /etc/NetworkManager/system-connections --format single-column').toString()
 
@@ -30,9 +43,12 @@ async function dns(dnsLocal) {
   }
 
   if (process.platform === 'win32') {
-    // TODO set dns
-    // win32 https://www.lifewire.com/how-to-change-dns-servers-in-windows-2626242
-    // ipconfig /all
+    console.log('\n🔓 need administrator permission for auto setup primary dns in connection...\n   you may exit and setup it manually...'
+    + `\n\ndns: [${dnsLocal}]\n`)
+    execSync(
+      `Start-Process "netsh" "interface ip set dns ""${connection}"" static ${dnsLocal}" -Verb runAs`,
+      { stdio: 'ignore', shell: 'powershell.exe' },
+    )
   } else if (process.platform === 'linux') {
     connection = connection.replace(/ /g, '\\ ')
     console.log('\n🔓 need root for auto setup primary dns in connection...\n   you may exit and setup it manually...'

@@ -2,11 +2,14 @@ const fs = require('fs')
 const path = require('path')
 const dns2 = require('dns2')
 const chokidar = require('chokidar')
+
 const traefik = require('./traefik')
 const local = require('./local')
 const install = require('./install')
 const uninstall = require('./uninstall')
 const help = require('./help')
+const env = require('./env')
+const logo = require('./logo')
 
 async function init(config) {
   const resolve = dns2.TCPClient({
@@ -58,6 +61,11 @@ async function init(config) {
 
   server.on('listening', (instance) => {
     console.log('⚙️  server ready...', instance.udp)
+  })
+
+  server.on('error', () => {
+    console.log('❌ error host and port already in use,', `host: ${config.host}, port: ${config.port}`)
+    process.exit(1)
   })
 
   await server.listen({
@@ -168,6 +176,9 @@ async function main() {
     }
   })
 }
+
+console.log(logo)
+console.log('version:', env.version, '\n')
 
 if (process.argv[2] === '--install') {
   install.install(process.argv[3] === '--force')

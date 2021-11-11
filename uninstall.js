@@ -37,7 +37,9 @@ async function uninstall() {
   await pkill.pkill({ exe })
 
   console.log('📂 remove folder:', folder)
-  fs.rmdirSync(folder, { recursive: true })
+  if (fs.existsSync(folder)) {
+    fs.rmSync(folder, { recursive: true })
+  }
 
   console.log('🚗 remove autostart...')
 

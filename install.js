@@ -99,7 +99,7 @@ async function install(isForce = false) {
 
   try {
     console.log('📁 copy file:', targetExec)
-    fs.copyFileSync(execPath, targetExec)
+    fs.cpSync(execPath, targetExec)
   } catch (err) {
     if (isForce) {
       console.log('🔥 force install service')

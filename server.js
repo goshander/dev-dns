@@ -10,6 +10,7 @@ const uninstall = require('./uninstall')
 const help = require('./help')
 const env = require('./env')
 const logo = require('./logo')
+const window = require('./window')
 
 async function init(config) {
   const resolve = dns2.TCPClient({
@@ -108,6 +109,10 @@ function configLoad() {
 }
 
 async function main() {
+  if (process.argv[2] === '--hidden' && process.platform === 'win32') {
+    window.hideWin32()
+  }
+
   let configSeed = configLoad()
   let watcher = null
   let server = null

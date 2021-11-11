@@ -127,12 +127,36 @@ async function install(isForce = false) {
   const autoLaunch = new AutoLaunch({
     name: appName,
     path: targetExec,
-    isHidden: true,
   })
 
   const enabled = await autoLaunch.isEnabled()
   if (enabled) {
     await autoLaunch.disable()
+  }
+
+  // fix easy-auto-launch to background mode
+  if (process.platform === 'win32') {
+    const Winreg = require('winreg')
+
+    const regKey = new Winreg({
+      hive: Winreg.HKCU,
+      key: '\\Software\\Microsoft\\Windows\\CurrentVersion\\Run',
+    })
+
+    autoLaunch.api.enable = function enable() {
+      return new Promise((resolve, reject) => {
+        const pathToAutoLaunchedApp = targetExec
+
+        // fix for auto launch in background mode
+        return regKey.set(appName, Winreg.REG_SZ,
+          // eslint-disable-next-line max-len
+          `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" Start-Process -WindowStyle hidden -FilePath "${pathToAutoLaunchedApp}"`,
+          (err) => {
+            if (err != null) { return reject(err) }
+            return resolve()
+          })
+      })
+    }
   }
 
   await autoLaunch.enable()

@@ -18,6 +18,7 @@ async function pkill({ exe }) {
     }
   } else if (process.platform === 'linux') {
     try {
+      // TODO add current process pid check
       execSync(`pkill -o ${exe}`, { stdio: 'ignore' })
     } catch (err) {
       // pass

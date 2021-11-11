@@ -112,6 +112,7 @@ async function main() {
 
     watcher = chokidar.watch(configSeed.configPath, {
       interval,
+      usePolling: true,
       persistent: true,
       ignoreInitial: true,
     })

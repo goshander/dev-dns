@@ -55,9 +55,9 @@ function run({ cwd, autoStartFile }) {
   console.log('🚀 launch process:', autoStartFile)
 
   if (process.platform === 'win32') {
-    execSync(`START /B ${autoStartFile}`, { cwd, stdio: 'ignore' })
+    execSync(`START /B ${autoStartFile}`, { cwd, stdio: 'ignore', detached: true })
   } else if (process.platform === 'linux') {
-    execSync(`${autoStartFile} &`, { cwd, stdio: 'ignore' })
+    execSync(`${autoStartFile} &`, { cwd, stdio: 'ignore', detached: true })
   }
 }
 

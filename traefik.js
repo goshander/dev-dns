@@ -14,7 +14,7 @@ async function update() {
     dockerHost = await docker.getConfig().modem.host
   } catch (err) {
     if (!dockerError) {
-      console.error('❌ error docker connection:', dockerHost, err.message)
+      console.error('❌ error docker connection:', err.message.replace('connect ENOENT ', ''))
       dockerError = true
     }
     return table
@@ -33,7 +33,7 @@ async function update() {
     }
   } catch (err) {
     if (!dockerError) {
-      console.error('❌ error docker connection:', dockerHost, err.message)
+      console.error('❌ error docker connection:', err.message.replace('connect ENOENT ', ''))
       dockerError = true
     }
   }

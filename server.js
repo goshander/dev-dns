@@ -12,9 +12,19 @@ const env = require('./env')
 const logo = require('./logo')
 
 async function init(config) {
-  const resolve = dns2.TCPClient({
-    dns: config.primary,
-  })
+  const primaryDNS = config.dns && config.dns.primary ? {
+    resolve: dns2.TCPClient({
+      dns: config.dns.primary,
+    }),
+    dns: config.dns.primary,
+  } : null
+
+  const secondaryDNS = config.dns && config.dns.secondary ? {
+    resolve: dns2.TCPClient({
+      dns: config.dns.secondary,
+    }),
+    dns: config.dns.secondary,
+  } : null
 
   let tResolve = null
   if (config.docker.enable) {
@@ -51,8 +61,27 @@ async function init(config) {
           address: lName,
         })
       } else {
-        const result = await resolve(name)
-        response.answers.push(...result.answers)
+        const dnsResult = []
+
+        if (primaryDNS != null) {
+          try {
+            const pResult = await primaryDNS.resolve(name)
+            dnsResult.push(...pResult.answers)
+          } catch (err) {
+            console.error('❌ error primary dns response:', config.dns.primary, '-', err.message)
+          }
+        }
+
+        if (secondaryDNS != null && dnsResult.length < 1) {
+          try {
+            const sResult = await secondaryDNS.resolve(name)
+            dnsResult.push(...sResult.answers)
+          } catch (err) {
+            console.error('❌ error secondary dns response:', config.dns.secondary, '-', err.message)
+          }
+        }
+
+        response.answers.push(...dnsResult)
       }
 
       send(response)

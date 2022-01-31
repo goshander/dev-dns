@@ -5,6 +5,7 @@ const chokidar = require('chokidar')
 
 const traefik = require('./traefik')
 const local = require('./local')
+const run = require('./run')
 const install = require('./install')
 const uninstall = require('./uninstall')
 const help = require('./help')
@@ -12,102 +13,112 @@ const env = require('./env')
 const logo = require('./logo')
 
 async function init(config) {
-  const primaryDNS = config.dns && config.dns.primary ? {
-    resolve: dns2.TCPClient({
+  let server
+  let tResolve
+
+  try {
+    const primaryDNS = config.dns && config.dns.primary ? {
+      resolve: dns2.TCPClient({
+        dns: config.dns.primary,
+      }),
       dns: config.dns.primary,
-    }),
-    dns: config.dns.primary,
-  } : null
+    } : null
 
-  const secondaryDNS = config.dns && config.dns.secondary ? {
-    resolve: dns2.TCPClient({
+    const secondaryDNS = config.dns && config.dns.secondary ? {
+      resolve: dns2.TCPClient({
+        dns: config.dns.secondary,
+      }),
       dns: config.dns.secondary,
-    }),
-    dns: config.dns.secondary,
-  } : null
+    } : null
 
-  let tResolve = null
-  if (config.docker.enable) {
-    tResolve = await traefik.init(config.docker.refresh)
+    if (config.docker.enable) {
+      tResolve = await traefik.init(config.docker.refresh)
+    }
+
+    const lResolve = await local.init(config.local)
+
+    server = dns2.createServer({
+      udp: true,
+      handle: async (request, send, rinfo) => {
+        const response = dns2.Packet.createResponseFromRequest(request)
+        const [question] = request.questions
+        const { name } = question
+
+        // traefik resolve
+        const tName = tResolve != null ? tResolve.resolve(name) : null
+        const lName = lResolve.resolve(name)
+
+        if (tName) {
+          response.answers.push({
+            name,
+            type: dns2.Packet.TYPE.A,
+            class: dns2.Packet.CLASS.IN,
+            ttl: 300,
+            address: tName,
+          })
+        } else if (lName) {
+          response.answers.push({
+            name,
+            type: dns2.Packet.TYPE.A,
+            class: dns2.Packet.CLASS.IN,
+            ttl: 300,
+            address: lName,
+          })
+        } else {
+          const dnsResult = []
+
+          if (primaryDNS != null) {
+            try {
+              const pResult = await primaryDNS.resolve(name)
+              dnsResult.push(...pResult.answers)
+            } catch (err) {
+              console.error('❌ error primary dns response:', config.dns.primary, '-', err.message)
+            }
+          }
+
+          if (secondaryDNS != null && dnsResult.length < 1) {
+            try {
+              const sResult = await secondaryDNS.resolve(name)
+              dnsResult.push(...sResult.answers)
+            } catch (err) {
+              console.error('❌ error secondary dns response:', config.dns.secondary, '-', err.message)
+            }
+          }
+
+          response.answers.push(...dnsResult)
+        }
+
+        send(response)
+      },
+    })
+
+    server.on('listening', (instance) => {
+      console.log('⚙️  server ready...', instance.udp)
+    })
+
+    server.on('error', () => {
+      console.log('❌ error host and port already in use,', `host: ${config.host}, port: ${config.port}`)
+      process.exit(1)
+    })
+
+    await server.listen({
+      udp: {
+        address: config.host,
+        port: config.port,
+      },
+    })
+  } catch (err) {
+    console.log('❌ error dns server,', `error: ${err.stack || err}`)
   }
-
-  const lResolve = await local.init(config.local)
-
-  const server = dns2.createServer({
-    udp: true,
-    handle: async (request, send, rinfo) => {
-      const response = dns2.Packet.createResponseFromRequest(request)
-      const [question] = request.questions
-      const { name } = question
-
-      // traefik resolve
-      const tName = tResolve != null ? tResolve.resolve(name) : null
-      const lName = lResolve.resolve(name)
-
-      if (tName) {
-        response.answers.push({
-          name,
-          type: dns2.Packet.TYPE.A,
-          class: dns2.Packet.CLASS.IN,
-          ttl: 300,
-          address: tName,
-        })
-      } else if (lName) {
-        response.answers.push({
-          name,
-          type: dns2.Packet.TYPE.A,
-          class: dns2.Packet.CLASS.IN,
-          ttl: 300,
-          address: lName,
-        })
-      } else {
-        const dnsResult = []
-
-        if (primaryDNS != null) {
-          try {
-            const pResult = await primaryDNS.resolve(name)
-            dnsResult.push(...pResult.answers)
-          } catch (err) {
-            console.error('❌ error primary dns response:', config.dns.primary, '-', err.message)
-          }
-        }
-
-        if (secondaryDNS != null && dnsResult.length < 1) {
-          try {
-            const sResult = await secondaryDNS.resolve(name)
-            dnsResult.push(...sResult.answers)
-          } catch (err) {
-            console.error('❌ error secondary dns response:', config.dns.secondary, '-', err.message)
-          }
-        }
-
-        response.answers.push(...dnsResult)
-      }
-
-      send(response)
-    },
-  })
-
-  server.on('listening', (instance) => {
-    console.log('⚙️  server ready...', instance.udp)
-  })
-
-  server.on('error', () => {
-    console.log('❌ error host and port already in use,', `host: ${config.host}, port: ${config.port}`)
-    process.exit(1)
-  })
-
-  await server.listen({
-    udp: {
-      address: config.host,
-      port: config.port,
-    },
-  })
 
   return {
     async  close() {
-      await server.close()
-      if (tResolve != null) await tResolve.close()
+      try {
+        if (server != null) await server.close()
+        if (tResolve != null) await tResolve.close()
+      } catch (_) {
+        // pass
+      }
     },
   }
 }
@@ -215,6 +226,8 @@ if (process.argv[2] === '--install') {
   uninstall.uninstall()
 } else if (process.argv[2] === '--help') {
   help.help()
+} else if (process.argv[2] === '--run') {
+  run.run(true)
 } else {
   main()
 }

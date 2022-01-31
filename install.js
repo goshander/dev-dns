@@ -186,5 +186,6 @@ async function install(isForce = false) {
 }
 
 module.exports = {
+  run,
   install,
 }
